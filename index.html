@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradePro - Plateforme de Trading Professionnelle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #13171f;
+            --bg-tertiary: #1a1f2e;
+            --accent-green: #00ff88;
+            --accent-red: #ff4757;
+            --accent-blue: #3b82f6;
+            --text-primary: #e4e7eb;
+            --text-secondary: #9ca3af;
+            --border-color: #262b38;
+            --shadow-glow: rgba(0, 255, 136, 0.15);
+        }
+
+        body {
+            font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects */
+        .background-gradient {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 50% 50%, 
+                rgba(0, 255, 136, 0.03) 0%, 
+                transparent 50%);
+            animation: gradientRotate 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gradientRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 48px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .auth-box form {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .auth-box form.hidden {
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--accent-green);
+            text-shadow: 0 0 20px var(--shadow-glow);
+        }
+
+        .auth-logo p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px var(--shadow-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: #00dd77;
+            box-shadow: 0 0 20px var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .auth-toggle a {
+            color: var(--accent-green);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .dashboard.active {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 32px;
+            text-shadow: 0 0 15px var(--shadow-glow);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .menu-item.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-green);
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .menu-item svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .user-section {
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--bg-primary);
+        }
+
+        .user-details h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-details p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 32px;
+            width: calc(100% - 280px);
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.green {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .stat-icon.red {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            color: var(--accent-green);
+        }
+
+        .stat-change.negative {
+            color: var(--accent-red);
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Market List */
+        .market-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .market-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 16px;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .market-item:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+
+        .market-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .market-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .market-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .market-price {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .market-change {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .market-change.positive {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .market-change.negative {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        /* Trading Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .trade-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .trade-type-btn {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .trade-type-btn.active {
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .trade-type-btn.sell.active {
+            border-color: var(--accent-red);
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        .trade-info {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .trade-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .trade-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .trade-info-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .trade-info-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-tertiary);
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.open {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .status-badge.closed {
+            background: rgba(156, 163, 175, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .status-badge.approved {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        /* Admin Styles */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .user-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* Market Management Styles */
+        .market-management {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .market-management-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .market-management-form {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .market-list-admin {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .market-item-admin {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .market-item-admin:active {
+            cursor: grabbing;
+            opacity: 0.7;
+        }
+
+        .market-item-admin:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+
+        .market-item-admin .market-drag {
+            cursor: grab;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .market-item-admin .market-name {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .market-item-admin .market-name h4 {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .market-item-admin .market-name p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .market-item-admin .market-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .market-item-admin .btn-icon {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .market-item-admin .btn-icon.edit {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .market-item-admin .btn-icon.edit:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .market-item-admin .btn-icon.delete {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        .market-item-admin .btn-icon.delete:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+
+        .market-item-admin .btn-icon.up {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .market-item-admin .btn-icon.up:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .market-item-admin .btn-icon.down {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .market-item-admin .btn-icon.down:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .form-group-inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group-inline.full {
+            grid-template-columns: 1fr;
+        }
+
+        .interval-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .interval-badge {
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .interval-badge.selected {
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+        }
+
+        .admin-user-item {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-user-item .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .admin-user-item .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .admin-user-item .user-email {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .admin-user-item .user-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 16px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-box {
+                padding: 32px 24px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 24px;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="content-wrapper">
+        <!-- Auth Screen -->
+        <div id="authScreen" class="auth-container">
+            <div class="auth-box">
+                <div class="auth-logo">
+                    <h1>TradePro</h1>
+                    <p>Plateforme de Trading Professionnelle</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Adresse email</label>
+                        <input type="email" id="loginEmail" class="form-input" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Mot de passe</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Se connecter</button>
+                    <div class="auth-toggle">
+                        <span>Pas encore de compte ? </span>
+                        <a href="#" id="showRegister">Créer un compte</a>
+                    </div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="hidden">
+                    <div class="form-group">
+                        <label for="registerName">Nom complet</label>
+                        <input type="text" id="registerName" class="form-input" placeholder="Jean Dupont" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Adresse email</label>
+                        <input type="email" id="registerEmail" class="form-input" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Mot de passe</label>
+                        <input type="password" id="registerPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerConfirmPassword">Confirmer le mot de passe</label>
+                        <input type="password" id="registerConfirmPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Créer un compte</button>
+                    <div class="auth-toggle">
+                        <span>Déjà un compte ? </span>
+                        <a href="#" id="showLogin">Se connecter</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="userDashboard" class="dashboard">
+            <aside class="sidebar">
+                <div class="sidebar-logo">TradePro</div>
+                <nav class="sidebar-menu">
+                    <div class="menu-item active" data-page="overview">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span>Tableau de bord</span>
+                    </div>
+                    <div class="menu-item" data-page="markets">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                        </svg>
+                        <span>Marchés</span>
+                    </div>
+                    <div class="menu-item" data-page="positions">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span>Positions</span>
+                    </div>
+                    <div class="menu-item" data-page="history">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Historique</span>
+                    </div>
+                    <div class="menu-item" data-page="deposit">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Recharge</span>
+                    </div>
+                </nav>
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <div class="user-details">
+                            <h4 id="userName">Utilisateur</h4>
+                            <p>Compte Trading</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="logoutBtn">Déconnexion</button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <!-- Overview Page -->
+                <div id="overviewPage" class="page">
+                    <div class="page-header">
+                        <h2>Tableau de bord</h2>
+                        <p>Vue d'ensemble de votre compte de trading</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Capital disponible</span>
+                                <div class="stat-icon green">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="balanceAmount">0.00 €</div>
+                            <div class="stat-change positive">+0.00%</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">P&L Total</span>
+                                <div class="stat-icon blue">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="pnlAmount">+0.00 €</div>
+                            <div class="stat-change positive" id="pnlChange">+0.00%</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Positions ouvertes</span>
+                                <div class="stat-icon blue">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="openPositions">0</div>
+                            <div class="stat-change">Actives</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Trades totaux</span>
+                                <div class="stat-icon green">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="totalTrades">0</div>
+                            <div class="stat-change">Complétés</div>
+                        </div>
+                    </div>
+
+                    <div class="content-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Positions récentes</h3>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Actif</th>
+                                            <th>Type</th>
+                                            <th>Montant</th>
+                                            <th>P&L</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentPositions">
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                                                Aucune position pour le moment
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Marchés populaires</h3>
+                            </div>
+                            <div class="market-list" id="popularMarkets">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Markets Page -->
+                <div id="marketsPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Marchés disponibles</h2>
+                        <p>Tradez sur les marchés Forex, Crypto et Indices</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Tous les marchés</h3>
+                        </div>
+                        <div class="market-list" id="allMarkets">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Positions Page -->
+                <div id="positionsPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Mes positions</h2>
+                        <p>Gérez vos positions ouvertes et fermées</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Positions ouvertes</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Actif</th>
+                                        <th>Type</th>
+                                        <th>Montant</th>
+                                        <th>Prix d'entrée</th>
+                                        <th>Prix actuel</th>
+                                        <th>P&L</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="openPositionsTable">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; color: var(--text-secondary);">
+                                            Aucune position ouverte
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Page -->
+                <div id="historyPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Historique</h2>
+                        <p>Historique complet de vos transactions</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Historique des trades</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Actif</th>
+                                        <th>Type</th>
+                                        <th>Montant</th>
+                                        <th>Résultat</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTable">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                                            Aucun historique
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <h3 class="card-title">Historique des recharges</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                        <th>Traité par</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depositHistory">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: var(--text-secondary);">
+                                            Aucune recharge
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deposit Page -->
+                <div id="depositPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Demande de recharge</h2>
+                        <p>Rechargez votre compte de trading</p>
+                    </div>
+
+                    <div class="card" style="max-width: 600px;">
+                        <div class="card-header">
+                            <h3 class="card-title">Nouvelle recharge</h3>
+                        </div>
+                        <form id="depositForm">
+                            <div class="form-group">
+                                <label for="depositAmount">Montant de la recharge (€)</label>
+                                <input type="number" id="depositAmount" class="form-input" min="10" step="0.01" placeholder="100.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="depositNote">Note (optionnel)</label>
+                                <textarea id="depositNote" class="form-input" rows="3" placeholder="Informations complémentaires..."></textarea>
+                            </div>
+                            <div style="padding: 16px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 24px;">
+                                <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                                    ℹ️ Votre demande de recharge sera examinée par un administrateur. Une fois validée, le montant sera crédité sur votre compte de trading. Vous recevrez une notification lors de la validation.
+                                </p>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Soumettre la demande</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="dashboard">
+            <aside class="sidebar">
+                <div class="sidebar-logo">TradePro Admin</div>
+                <nav class="sidebar-menu">
+                    <div class="menu-item active" data-page="admin-overview">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span>Vue d'ensemble</span>
+                    </div>
+                    <div class="menu-item" data-page="admin-users">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <span>Utilisateurs</span>
+                    </div>
+                    <div class="menu-item" data-page="admin-deposits">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Recharges</span>
+                    </div>
+                    <div class="menu-item" data-page="admin-activity">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <span>Activité</span>
+                    </div>
+                    <div class="menu-item" data-page="admin-markets">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                        </svg>
+                        <span>Gestion Marchés</span>
+                    </div>
+                </nav>
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-avatar" style="background: var(--accent-blue);">A</div>
+                        <div class="user-details">
+                            <h4>Administrateur</h4>
+                            <p>Panneau de contrôle</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="adminLogoutBtn">Déconnexion</button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <!-- Admin Overview -->
+                <div id="adminOverviewPage" class="page">
+                    <div class="page-header">
+                        <h2>Panneau de contrôle</h2>
+                        <p>Vue d'ensemble de la plateforme</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Utilisateurs totaux</span>
+                                <div class="stat-icon blue">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="adminTotalUsers">0</div>
+                            <div class="stat-change">Comptes actifs</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Capital total</span>
+                                <div class="stat-icon green">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="adminTotalCapital">0.00 €</div>
+                            <div class="stat-change">Sur la plateforme</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Trades actifs</span>
+                                <div class="stat-icon blue">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="adminActiveTrades">0</div>
+                            <div class="stat-change">En cours</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Recharges en attente</span>
+                                <div class="stat-icon red">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="adminPendingDeposits">0</div>
+                            <div class="stat-change">À traiter</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Users Page -->
+                <div id="adminUsersPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Gestion des utilisateurs</h2>
+                        <p>Gérez les comptes et les soldes</p>
+                    </div>
+
+                    <div class="admin-grid" id="adminUsersList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Admin Deposits Page -->
+                <div id="adminDepositsPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Gestion des recharges</h2>
+                        <p>Validez ou refusez les demandes de recharge</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Demandes en attente</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Utilisateur</th>
+                                        <th>Montant</th>
+                                        <th>Note</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPendingDepositsList">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                                            Aucune demande en attente
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Activity Page -->
+                <div id="adminActivityPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Journal d'activité</h2>
+                        <p>Toutes les actions sur la plateforme</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Activité récente</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Utilisateur</th>
+                                        <th>Description</th>
+                                        <th>Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminActivityLog">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: var(--text-secondary);">
+                                            Aucune activité récente
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Markets Management Page -->
+                <div id="adminMarketsPage" class="page hidden">
+                    <div class="page-header">
+                        <h2>Gestion des marchés</h2>
+                        <p>Ajouter, modifier, réordonner et gérer les marchés disponibles</p>
+                    </div>
+
+                    <div class="market-management">
+                        <!-- Add/Edit Market Form -->
+                        <div class="market-management-section" style="max-width: 400px;">
+                            <div class="market-management-form">
+                                <h3 style="margin-bottom: 20px;">Ajouter/Modifier un marché</h3>
+                                <form id="addMarketForm">
+                                    <input type="hidden" id="editingMarketId">
+                                    <input type="hidden" id="selectedInterval" value="middle">
+                                    
+                                    <div class="form-group">
+                                        <label for="marketSymbol">Symbole (ex: EUR/USD)</label>
+                                        <input type="text" id="marketSymbol" class="form-input" placeholder="EUR/USD" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="marketName">Nom du marché</label>
+                                        <input type="text" id="marketName" class="form-input" placeholder="Euro / Dollar" required>
+                                    </div>
+
+                                    <div class="form-group-inline">
+                                        <div>
+                                            <label for="marketPrice">Prix</label>
+                                            <input type="number" id="marketPrice" class="form-input" step="0.01" placeholder="1.0850" required>
+                                        </div>
+                                        <div>
+                                            <label for="marketChange">Changement (%)</label>
+                                            <input type="number" id="marketChange" class="form-input" step="0.01" placeholder="0.15" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="marketVolatility">Volatilité (0.0 - 1.0)</label>
+                                        <input type="number" id="marketVolatility" class="form-input" min="0" max="1" step="0.01" placeholder="0.01" required>
+                                        <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                                            Contrôle l'ampleur des variations de prix (0 = stable, 1 = très volatil)
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="marketCategory">Catégorie</label>
+                                        <select id="marketCategory" class="form-input" required>
+                                            <option value="">Sélectionner une catégorie</option>
+                                            <option value="Forex">Forex</option>
+                                            <option value="Crypto">Crypto</option>
+                                            <option value="Indices">Indices</option>
+                                            <option value="Matières">Matières premières</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Intervalle de positionnement</label>
+                                        <div class="interval-selector" id="intervalSelector">
+                                            <div class="interval-badge" data-interval="top">En haut</div>
+                                            <div class="interval-badge" data-interval="popular">Populaire</div>
+                                            <div class="interval-badge" data-interval="middle">Moyen</div>
+                                            <div class="interval-badge" data-interval="bottom">En bas</div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Ajouter/Mettre à jour</button>
+                                    <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="width: 100%; margin-top: 8px; display: none;">Annuler</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Markets List -->
+                        <div class="market-management-section">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Tous les marchés</h3>
+                                </div>
+                                <div class="market-list-admin" id="adminMarketsList">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Trading Modal -->
+        <div id="tradingModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalMarketName">EUR/USD</h3>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+
+                <div class="trade-type-selector">
+                    <button class="trade-type-btn active" data-type="buy">
+                        <span style="font-size: 20px;">↗</span><br>ACHETER
+                    </button>
+                    <button class="trade-type-btn sell" data-type="sell">
+                        <span style="font-size: 20px;">↘</span><br>VENDRE
+                    </button>
+                </div>
+
+                <div class="trade-info">
+                    <div class="trade-info-row">
+                        <span class="trade-info-label">Prix actuel</span>
+                        <span class="trade-info-value" id="modalCurrentPrice">1.0850</span>
+                    </div>
+                    <div class="trade-info-row">
+                        <span class="trade-info-label">Variation 24h</span>
+                        <span class="trade-info-value" id="modalPriceChange">+0.25%</span>
+                    </div>
+                </div>
+
+                <form id="tradeForm">
+                    <div class="form-group">
+                        <label for="tradeAmount">Montant (€)</label>
+                        <input type="number" id="tradeAmount" class="form-input" min="1" step="0.01" placeholder="100.00" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="executeTradeBtn">Ouvrir position</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Manage User Modal (Admin) -->
+        <div id="manageUserModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Gérer l'utilisateur</h3>
+                    <button class="modal-close" onclick="document.getElementById('manageUserModal').classList.remove('active')">&times;</button>
+                </div>
+
+                <div class="trade-info">
+                    <div class="trade-info-row">
+                        <span class="trade-info-label">Nom</span>
+                        <span class="trade-info-value" id="manageUserName">-</span>
+                    </div>
+                    <div class="trade-info-row">
+                        <span class="trade-info-label">Email</span>
+                        <span class="trade-info-value" id="manageUserEmail">-</span>
+                    </div>
+                    <div class="trade-info-row">
+                        <span class="trade-info-label">Solde actuel</span>
+                        <span class="trade-info-value" id="manageUserBalance">0.00 €</span>
+                    </div>
+                </div>
+
+                <form id="manageBalanceForm">
+                    <div class="form-group">
+                        <label for="balanceAction">Action</label>
+                        <select id="balanceAction" class="form-input">
+                            <option value="add">Ajouter du capital</option>
+                            <option value="remove">Retirer du capital</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="balanceAmount">Montant (€)</label>
+                        <input type="number" id="balanceAmount" class="form-input" min="0.01" step="0.01" placeholder="100.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="balanceNote">Note</label>
+                        <textarea id="balanceNote" class="form-input" rows="2" placeholder="Raison de la modification..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Valider la modification</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATA STORAGE =====
+        class DataStore {
+            constructor() {
+                this.users = this.loadData('users') || [];
+                this.deposits = this.loadData('deposits') || [];
+                this.trades = this.loadData('trades') || [];
+                this.positions = this.loadData('positions') || [];
+                this.activityLog = this.loadData('activityLog') || [];
+                this.currentUser = this.loadData('currentUser') || null;
+                
+                // Créer admin par défaut
+                if (!this.users.find(u => u.email === 'admin@tradepro.com')) {
+                    this.users.push({
+                        id: 'admin-' + Date.now(),
+                        name: 'Administrateur',
+                        email: 'admin@tradepro.com',
+                        password: this.hashPassword('admin123'),
+                        isAdmin: true,
+                        balance: 0,
+                        createdAt: new Date().toISOString()
+                    });
+                    this.saveData('users', this.users);
+                }
+            }
+
+            loadData(key) {
+                try {
+                    const data = localStorage.getItem('tradepro_' + key);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            saveData(key, data) {
+                localStorage.setItem('tradepro_' + key, JSON.stringify(data));
+            }
+
+            hashPassword(password) {
+                // Simple hash pour démo - utiliser bcrypt en production
+                return btoa(password);
+            }
+
+            verifyPassword(password, hash) {
+                return this.hashPassword(password) === hash;
+            }
+
+            addUser(userData) {
+                const user = {
+                    id: 'user-' + Date.now(),
+                    ...userData,
+                    password: this.hashPassword(userData.password),
+                    balance: 0,
+                    isAdmin: false,
+                    createdAt: new Date().toISOString()
+                };
+                this.users.push(user);
+                this.saveData('users', this.users);
+                return user;
+            }
+
+            login(email, password) {
+                const user = this.users.find(u => u.email === email);
+                if (user && this.verifyPassword(password, user.password)) {
+                    this.currentUser = { ...user };
+                    delete this.currentUser.password;
+                    this.saveData('currentUser', this.currentUser);
+                    this.logActivity('login', user.id, 'Connexion réussie');
+                    return this.currentUser;
+                }
+                return null;
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('tradepro_currentUser');
+            }
+
+            addDeposit(userId, amount, note) {
+                const deposit = {
+                    id: 'dep-' + Date.now(),
+                    userId,
+                    amount: parseFloat(amount),
+                    note,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                this.deposits.push(deposit);
+                this.saveData('deposits', this.deposits);
+                this.logActivity('deposit_request', userId, `Demande de recharge: ${amount}€`, amount);
+                return deposit;
+            }
+
+            approveDeposit(depositId, adminId) {
+                const deposit = this.deposits.find(d => d.id === depositId);
+                if (deposit) {
+                    deposit.status = 'approved';
+                    deposit.approvedBy = adminId;
+                    deposit.approvedAt = new Date().toISOString();
+                    
+                    const user = this.users.find(u => u.id === deposit.userId);
+                    if (user) {
+                        user.balance += deposit.amount;
+                        this.saveData('users', this.users);
+                    }
+                    
+                    this.saveData('deposits', this.deposits);
+                    this.logActivity('deposit_approved', deposit.userId, `Recharge approuvée: ${deposit.amount}€`, deposit.amount);
+                    return true;
+                }
+                return false;
+            }
+
+            rejectDeposit(depositId, adminId) {
+                const deposit = this.deposits.find(d => d.id === depositId);
+                if (deposit) {
+                    deposit.status = 'rejected';
+                    deposit.rejectedBy = adminId;
+                    deposit.rejectedAt = new Date().toISOString();
+                    this.saveData('deposits', this.deposits);
+                    this.logActivity('deposit_rejected', deposit.userId, `Recharge refusée: ${deposit.amount}€`);
+                    return true;
+                }
+                return false;
+            }
+
+            openPosition(userId, asset, type, amount, entryPrice) {
+                const position = {
+                    id: 'pos-' + Date.now(),
+                    userId,
+                    asset,
+                    type, // 'buy' or 'sell'
+                    amount: parseFloat(amount),
+                    entryPrice: parseFloat(entryPrice),
+                    currentPrice: parseFloat(entryPrice),
+                    status: 'open',
+                    pnl: 0,
+                    openedAt: new Date().toISOString()
+                };
+
+                const user = this.users.find(u => u.id === userId);
+                if (user && user.balance >= amount) {
+                    user.balance -= amount;
+                    this.positions.push(position);
+                    this.saveData('positions', this.positions);
+                    this.saveData('users', this.users);
+                    this.logActivity('position_opened', userId, `Position ouverte: ${type} ${asset}`, amount);
+                    return position;
+                }
+                return null;
+            }
+
+            closePosition(positionId) {
+                const position = this.positions.find(p => p.id === positionId);
+                if (position && position.status === 'open') {
+                    position.status = 'closed';
+                    position.closedAt = new Date().toISOString();
+                    
+                    const user = this.users.find(u => u.id === position.userId);
+                    if (user) {
+                        const finalAmount = position.amount + position.pnl;
+                        user.balance += finalAmount;
+                        this.saveData('users', this.users);
+                    }
+
+                    this.trades.push({ ...position });
+                    this.saveData('positions', this.positions);
+                    this.saveData('trades', this.trades);
+                    this.logActivity('position_closed', position.userId, `Position fermée: ${position.asset}`, position.pnl);
+                    return position;
+                }
+                return null;
+            }
+
+            updatePositionPrices(marketPrices) {
+                this.positions.forEach(position => {
+                    if (position.status === 'open' && marketPrices[position.asset]) {
+                        position.currentPrice = marketPrices[position.asset];
+                        
+                        const priceChange = position.currentPrice - position.entryPrice;
+                        const multiplier = position.type === 'buy' ? 1 : -1;
+                        const percentChange = (priceChange / position.entryPrice) * 100;
+                        position.pnl = (position.amount * percentChange / 100) * multiplier;
+                    }
+                });
+                this.saveData('positions', this.positions);
+            }
+
+            modifyUserBalance(userId, action, amount, note, adminId) {
+                const user = this.users.find(u => u.id === userId);
+                if (user) {
+                    const parsedAmount = parseFloat(amount);
+                    if (action === 'add') {
+                        user.balance += parsedAmount;
+                        this.logActivity('balance_added', userId, note || `Capital ajouté par admin: ${parsedAmount}€`, parsedAmount);
+                    } else {
+                        user.balance -= parsedAmount;
+                        this.logActivity('balance_removed', userId, note || `Capital retiré par admin: ${parsedAmount}€`, -parsedAmount);
+                    }
+                    this.saveData('users', this.users);
+                    return user;
+                }
+                return null;
+            }
+
+            logActivity(type, userId, description, amount = null) {
+                const log = {
+                    id: 'log-' + Date.now(),
+                    type,
+                    userId,
+                    description,
+                    amount,
+                    timestamp: new Date().toISOString()
+                };
+                this.activityLog.push(log);
+                // Garder seulement les 1000 derniers logs
+                if (this.activityLog.length > 1000) {
+                    this.activityLog = this.activityLog.slice(-1000);
+                }
+                this.saveData('activityLog', this.activityLog);
+            }
+
+            getUserPositions(userId) {
+                return this.positions.filter(p => p.userId === userId);
+            }
+
+            getUserTrades(userId) {
+                return this.trades.filter(t => t.userId === userId);
+            }
+
+            getUserDeposits(userId) {
+                return this.deposits.filter(d => d.userId === userId);
+            }
+        }
+
+        // ===== MARKET DATA SIMULATOR =====
+        class MarketSimulator {
+            constructor() {
+                this.defaultMarkets = {
+                    'EUR/USD': { symbol: 'EUR/USD', name: 'Euro / Dollar', price: 1.0850, change: 0.15, category: 'Forex', interval: 'top', volatility: 0.002 },
+                    'GBP/USD': { symbol: 'GBP/USD', name: 'Livre / Dollar', price: 1.2734, change: -0.08, category: 'Forex', interval: 'top', volatility: 0.002 },
+                    'USD/JPY': { symbol: 'USD/JPY', name: 'Dollar / Yen', price: 149.52, change: 0.32, category: 'Forex', interval: 'popular', volatility: 0.002 },
+                    'XAU/USD': { symbol: 'XAU/USD', name: 'Or / Dollar', price: 2034.50, change: 0.87, category: 'Forex', interval: 'popular', volatility: 0.003 },
+                    'BTC/USD': { symbol: 'BTC/USD', name: 'Bitcoin', price: 43250.00, change: 2.15, category: 'Crypto', interval: 'top', volatility: 0.01 },
+                    'ETH/USD': { symbol: 'ETH/USD', name: 'Ethereum', price: 2285.50, change: 1.73, category: 'Crypto', interval: 'popular', volatility: 0.01 },
+                    'ADA/USD': { symbol: 'ADA/USD', name: 'Cardano', price: 0.5847, change: -1.25, category: 'Crypto', interval: 'middle', volatility: 0.015 },
+                    'DOT/USD': { symbol: 'DOT/USD', name: 'Polkadot', price: 7.23, change: 0.95, category: 'Crypto', interval: 'middle', volatility: 0.012 }
+                };
+                
+                // Charger les marchés personnalisés ou utiliser les défauts
+                const savedMarkets = localStorage.getItem('tradepro_customMarkets');
+                this.markets = savedMarkets ? JSON.parse(savedMarkets) : { ...this.defaultMarkets };
+                
+                // Assurer que tous les marchés ont une volatilité
+                Object.keys(this.markets).forEach(symbol => {
+                    if (!this.markets[symbol].volatility) {
+                        this.markets[symbol].volatility = this.markets[symbol].category === 'Crypto' ? 0.01 : 0.002;
+                    }
+                });
+                
+                this.priceHistory = {};
+                Object.keys(this.markets).forEach(symbol => {
+                    this.priceHistory[symbol] = this.generateInitialHistory(this.markets[symbol].price);
+                });
+            }
+
+            generateInitialHistory(basePrice) {
+                const history = [];
+                let price = basePrice;
+                for (let i = 50; i >= 0; i--) {
+                    const change = (Math.random() - 0.5) * (basePrice * 0.005);
+                    price += change;
+                    history.push({
+                        time: Date.now() - (i * 60000),
+                        price: price
+                    });
+                }
+                return history;
+            }
+
+            updatePrices() {
+                Object.keys(this.markets).forEach(symbol => {
+                    const market = this.markets[symbol];
+                    // Utiliser la volatilité personnalisée si disponible, sinon utiliser la volatilité par défaut basée sur la catégorie
+                    const volatility = market.volatility !== undefined ? market.volatility : (market.category === 'Crypto' ? 0.01 : 0.002);
+                    const change = (Math.random() - 0.5) * (market.price * volatility);
+                    market.price += change;
+                    market.change = ((market.price - this.priceHistory[symbol][0].price) / this.priceHistory[symbol][0].price) * 100;
+                    
+                    this.priceHistory[symbol].push({
+                        time: Date.now(),
+                        price: market.price
+                    });
+                    
+                    if (this.priceHistory[symbol].length > 100) {
+                        this.priceHistory[symbol].shift();
+                    }
+                });
+                
+                return this.getCurrentPrices();
+            }
+
+            getCurrentPrices() {
+                const prices = {};
+                Object.keys(this.markets).forEach(symbol => {
+                    prices[symbol] = this.markets[symbol].price;
+                });
+                return prices;
+            }
+
+            getMarket(symbol) {
+                return this.markets[symbol];
+            }
+
+            getAllMarkets() {
+                return Object.values(this.markets);
+            }
+
+            getMarketsByInterval(interval) {
+                return Object.values(this.markets).filter(m => m.interval === interval);
+            }
+
+            getPriceHistory(symbol) {
+                return this.priceHistory[symbol] || [];
+            }
+
+            addMarket(marketData) {
+                const symbol = marketData.symbol.toUpperCase();
+                if (this.markets[symbol]) {
+                    return false; // Market already exists
+                }
+                
+                this.markets[symbol] = {
+                    symbol,
+                    name: marketData.name,
+                    price: parseFloat(marketData.price),
+                    change: parseFloat(marketData.change),
+                    category: marketData.category,
+                    interval: marketData.interval || 'middle',
+                    volatility: parseFloat(marketData.volatility) || 0.002
+                };
+                
+                this.priceHistory[symbol] = this.generateInitialHistory(this.markets[symbol].price);
+                this.saveMarkets();
+                return true;
+            }
+
+            updateMarket(symbol, marketData) {
+                if (!this.markets[symbol]) {
+                    return false;
+                }
+                
+                this.markets[symbol] = {
+                    symbol,
+                    name: marketData.name,
+                    price: parseFloat(marketData.price),
+                    change: parseFloat(marketData.change),
+                    category: marketData.category,
+                    interval: marketData.interval || this.markets[symbol].interval,
+                    volatility: parseFloat(marketData.volatility) || this.markets[symbol].volatility || 0.002
+                };
+                
+                this.priceHistory[symbol] = this.generateInitialHistory(this.markets[symbol].price);
+                this.saveMarkets();
+                return true;
+            }
+
+            deleteMarket(symbol) {
+                if (this.markets[symbol]) {
+                    delete this.markets[symbol];
+                    delete this.priceHistory[symbol];
+                    this.saveMarkets();
+                    return true;
+                }
+                return false;
+            }
+
+            moveMarketUp(symbol) {
+                const market = this.markets[symbol];
+                if (!market) return false;
+
+                const intervals = ['top', 'popular', 'middle', 'bottom'];
+                const currentIndex = intervals.indexOf(market.interval);
+                if (currentIndex > 0) {
+                    market.interval = intervals[currentIndex - 1];
+                    this.saveMarkets();
+                    return true;
+                }
+                return false;
+            }
+
+            moveMarketDown(symbol) {
+                const market = this.markets[symbol];
+                if (!market) return false;
+
+                const intervals = ['top', 'popular', 'middle', 'bottom'];
+                const currentIndex = intervals.indexOf(market.interval);
+                if (currentIndex < intervals.length - 1) {
+                    market.interval = intervals[currentIndex + 1];
+                    this.saveMarkets();
+                    return true;
+                }
+                return false;
+            }
+
+            saveMarkets() {
+                localStorage.setItem('tradepro_customMarkets', JSON.stringify(this.markets));
+            }
+        }
+
+        // ===== APPLICATION =====
+        class TradingApp {
+            constructor() {
+                this.store = new DataStore();
+                this.simulator = new MarketSimulator();
+                this.currentMarket = null;
+                this.priceChart = null;
+                this.tradeType = 'buy';
+                
+                this.init();
+            }
+
+            init() {
+                this.checkAuth();
+                this.bindEvents();
+                this.startPriceUpdates();
+            }
+
+            checkAuth() {
+                if (this.store.currentUser) {
+                    this.showDashboard();
+                } else {
+                    this.showAuth();
+                }
+            }
+
+            showAuth() {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('userDashboard').classList.remove('active');
+                document.getElementById('adminDashboard').classList.remove('active');
+            }
+
+            showDashboard() {
+                document.getElementById('authScreen').style.display = 'none';
+                
+                if (this.store.currentUser.isAdmin) {
+                    document.getElementById('adminDashboard').classList.add('active');
+                    this.loadAdminDashboard();
+                } else {
+                    document.getElementById('userDashboard').classList.add('active');
+                    this.loadUserDashboard();
+                }
+            }
+
+            bindEvents() {
+                // Auth events
+                document.getElementById('showRegister').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('registerForm').classList.remove('hidden');
+                });
+
+                document.getElementById('showLogin').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('registerForm').classList.add('hidden');
+                    document.getElementById('loginForm').classList.remove('hidden');
+                });
+
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                document.getElementById('registerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleRegister();
+                });
+
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.handleLogout();
+                });
+
+                document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+                    this.handleLogout();
+                });
+
+                // Navigation
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = e.currentTarget.dataset.page;
+                        this.navigateTo(page);
+                    });
+                });
+
+                // Trading modal
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    document.getElementById('tradingModal').classList.remove('active');
+                });
+
+                document.querySelectorAll('.trade-type-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.trade-type-btn').forEach(b => b.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        this.tradeType = e.currentTarget.dataset.type;
+                    });
+                });
+
+                document.getElementById('tradeForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.executeTrade();
+                });
+
+                // Deposit form
+                document.getElementById('depositForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitDepositRequest();
+                });
+
+                // Admin balance form
+                document.getElementById('manageBalanceForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.modifyUserBalance();
+                });
+            }
+
+            handleLogin() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const user = this.store.login(email, password);
+                if (user) {
+                    this.showDashboard();
+                } else {
+                    alert('Email ou mot de passe incorrect');
+                }
+            }
+
+            handleRegister() {
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    alert('Les mots de passe ne correspondent pas');
+                    return;
+                }
+
+                if (this.store.users.find(u => u.email === email)) {
+                    alert('Cet email est déjà utilisé');
+                    return;
+                }
+
+                this.store.addUser({ name, email, password });
+                alert('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+            }
+
+            handleLogout() {
+                this.store.logout();
+                this.showAuth();
+                location.reload();
+            }
+
+            navigateTo(page) {
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+                document.querySelectorAll('.page').forEach(p => {
+                    p.classList.add('hidden');
+                });
+
+                const pageMap = {
+                    'overview': 'overviewPage',
+                    'markets': 'marketsPage',
+                    'positions': 'positionsPage',
+                    'history': 'historyPage',
+                    'deposit': 'depositPage',
+                    'admin-overview': 'adminOverviewPage',
+                    'admin-users': 'adminUsersPage',
+                    'admin-deposits': 'adminDepositsPage',
+                    'admin-activity': 'adminActivityPage',
+                    'admin-markets': 'adminMarketsPage'
+                };
+
+                const pageElement = document.getElementById(pageMap[page]);
+                if (pageElement) {
+                    pageElement.classList.remove('hidden');
+                    
+                    // Reload data for specific pages
+                    if (page === 'positions') this.loadPositionsPage();
+                    if (page === 'history') this.loadHistoryPage();
+                    if (page === 'markets') this.loadMarketsPage();
+                    if (page === 'admin-users') this.loadAdminUsersPage();
+                    if (page === 'admin-deposits') this.loadAdminDepositsPage();
+                    if (page === 'admin-activity') this.loadAdminActivityPage();
+                    if (page === 'admin-markets') this.loadAdminMarketsPage();
+                }
+            }
+
+            loadUserDashboard() {
+                const user = this.store.users.find(u => u.id === this.store.currentUser.id);
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+
+                this.updateUserStats();
+                this.loadPopularMarkets();
+                this.loadRecentPositions();
+            }
+
+            updateUserStats() {
+                const user = this.store.users.find(u => u.id === this.store.currentUser.id);
+                const positions = this.store.getUserPositions(user.id);
+                const trades = this.store.getUserTrades(user.id);
+                
+                const openPositions = positions.filter(p => p.status === 'open');
+                const totalPnL = openPositions.reduce((sum, p) => sum + p.pnl, 0);
+                
+                document.getElementById('balanceAmount').textContent = user.balance.toFixed(2) + ' €';
+                document.getElementById('pnlAmount').textContent = (totalPnL >= 0 ? '+' : '') + totalPnL.toFixed(2) + ' €';
+                document.getElementById('pnlChange').textContent = (totalPnL >= 0 ? '+' : '') + ((totalPnL / Math.max(user.balance, 1)) * 100).toFixed(2) + '%';
+                document.getElementById('pnlChange').className = 'stat-change ' + (totalPnL >= 0 ? 'positive' : 'negative');
+                document.getElementById('openPositions').textContent = openPositions.length;
+                document.getElementById('totalTrades').textContent = trades.length;
+            }
+
+            loadPopularMarkets() {
+                const markets = this.simulator.getAllMarkets().slice(0, 4);
+                const container = document.getElementById('popularMarkets');
+                container.innerHTML = markets.map(market => `
+                    <div class="market-item" onclick="app.openTradingModal('${market.symbol}')">
+                        <div class="market-icon">${market.symbol.substring(0, 3)}</div>
+                        <div class="market-info">
+                            <h4>${market.symbol}</h4>
+                            <p>${market.name}</p>
+                        </div>
+                        <div class="market-price">${market.price.toFixed(market.category === 'Crypto' ? 2 : 4)}</div>
+                        <div class="market-change ${market.change >= 0 ? 'positive' : 'negative'}">
+                            ${market.change >= 0 ? '+' : ''}${market.change.toFixed(2)}%
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            loadRecentPositions() {
+                const positions = this.store.getUserPositions(this.store.currentUser.id).slice(-5).reverse();
+                const tbody = document.getElementById('recentPositions');
+                
+                if (positions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Aucune position pour le moment</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = positions.map(pos => `
+                    <tr>
+                        <td>${pos.asset}</td>
+                        <td style="text-transform: uppercase;">${pos.type === 'buy' ? '↗ Achat' : '↘ Vente'}</td>
+                        <td>${pos.amount.toFixed(2)} €</td>
+                        <td style="color: ${pos.pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${pos.pnl >= 0 ? '+' : ''}${pos.pnl.toFixed(2)} €</td>
+                        <td><span class="status-badge ${pos.status}">${pos.status === 'open' ? 'Ouverte' : 'Fermée'}</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            loadMarketsPage() {
+                const markets = this.simulator.getAllMarkets();
+                const container = document.getElementById('allMarkets');
+                container.innerHTML = markets.map(market => `
+                    <div class="market-item" onclick="app.openTradingModal('${market.symbol}')">
+                        <div class="market-icon">${market.symbol.substring(0, 3)}</div>
+                        <div class="market-info">
+                            <h4>${market.symbol}</h4>
+                            <p>${market.name} • ${market.category}</p>
+                        </div>
+                        <div class="market-price">${market.price.toFixed(market.category === 'Crypto' ? 2 : 4)}</div>
+                        <div class="market-change ${market.change >= 0 ? 'positive' : 'negative'}">
+                            ${market.change >= 0 ? '+' : ''}${market.change.toFixed(2)}%
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            loadPositionsPage() {
+                const positions = this.store.getUserPositions(this.store.currentUser.id).filter(p => p.status === 'open');
+                const tbody = document.getElementById('openPositionsTable');
+                
+                if (positions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Aucune position ouverte</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = positions.map(pos => {
+                    const date = new Date(pos.openedAt);
+                    return `
+                        <tr>
+                            <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                            <td>${pos.asset}</td>
+                            <td style="text-transform: uppercase;">${pos.type === 'buy' ? '↗ Achat' : '↘ Vente'}</td>
+                            <td>${pos.amount.toFixed(2)} €</td>
+                            <td>${pos.entryPrice.toFixed(4)}</td>
+                            <td>${pos.currentPrice.toFixed(4)}</td>
+                            <td style="color: ${pos.pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${pos.pnl >= 0 ? '+' : ''}${pos.pnl.toFixed(2)} €</td>
+                            <td><button class="btn-small btn-danger" onclick="app.closePosition('${pos.id}')">Fermer</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            loadHistoryPage() {
+                const trades = this.store.getUserTrades(this.store.currentUser.id).reverse();
+                const tbody = document.getElementById('historyTable');
+                
+                if (trades.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Aucun historique</td></tr>';
+                } else {
+                    tbody.innerHTML = trades.map(trade => {
+                        const date = new Date(trade.closedAt);
+                        return `
+                            <tr>
+                                <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                                <td>${trade.asset}</td>
+                                <td style="text-transform: uppercase;">${trade.type === 'buy' ? '↗ Achat' : '↘ Vente'}</td>
+                                <td>${trade.amount.toFixed(2)} €</td>
+                                <td style="color: ${trade.pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)} €</td>
+                                <td><span class="status-badge closed">Fermée</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                const deposits = this.store.getUserDeposits(this.store.currentUser.id).reverse();
+                const depositsTbody = document.getElementById('depositHistory');
+                
+                if (deposits.length === 0) {
+                    depositsTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Aucune recharge</td></tr>';
+                } else {
+                    depositsTbody.innerHTML = deposits.map(dep => {
+                        const date = new Date(dep.createdAt);
+                        return `
+                            <tr>
+                                <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                                <td>${dep.amount.toFixed(2)} €</td>
+                                <td><span class="status-badge ${dep.status}">${dep.status === 'approved' ? 'Approuvée' : dep.status === 'pending' ? 'En attente' : 'Refusée'}</span></td>
+                                <td>${dep.status === 'approved' ? 'Admin' : '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            openTradingModal(symbol) {
+                this.currentMarket = this.simulator.getMarket(symbol);
+                document.getElementById('modalMarketName').textContent = this.currentMarket.symbol;
+                document.getElementById('modalCurrentPrice').textContent = this.currentMarket.price.toFixed(4);
+                document.getElementById('modalPriceChange').textContent = (this.currentMarket.change >= 0 ? '+' : '') + this.currentMarket.change.toFixed(2) + '%';
+                document.getElementById('tradingModal').classList.add('active');
+                
+                this.renderPriceChart(symbol);
+            }
+
+            renderPriceChart(symbol) {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                const history = this.simulator.getPriceHistory(symbol);
+                
+                if (this.priceChart) {
+                    this.priceChart.destroy();
+                }
+
+                this.priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: history.map(h => new Date(h.time).toLocaleTimeString()),
+                        datasets: [{
+                            label: symbol,
+                            data: history.map(h => h.price),
+                            borderColor: '#00ff88',
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: false
+                            },
+                            y: {
+                                ticks: {
+                                    color: '#9ca3af'
+                                },
+                                grid: {
+                                    color: '#262b38'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            executeTrade() {
+                const amount = parseFloat(document.getElementById('tradeAmount').value);
+                const user = this.store.users.find(u => u.id === this.store.currentUser.id);
+
+                if (amount > user.balance) {
+                    alert('Solde insuffisant');
+                    return;
+                }
+
+                const position = this.store.openPosition(
+                    user.id,
+                    this.currentMarket.symbol,
+                    this.tradeType,
+                    amount,
+                    this.currentMarket.price
+                );
+
+                if (position) {
+                    alert('Position ouverte avec succès !');
+                    document.getElementById('tradingModal').classList.remove('active');
+                    document.getElementById('tradeForm').reset();
+                    this.loadUserDashboard();
+                } else {
+                    alert('Erreur lors de l\'ouverture de la position');
+                }
+            }
+
+            closePosition(positionId) {
+                if (confirm('Voulez-vous vraiment fermer cette position ?')) {
+                    const position = this.store.closePosition(positionId);
+                    if (position) {
+                        alert(`Position fermée. P&L: ${position.pnl >= 0 ? '+' : ''}${position.pnl.toFixed(2)} €`);
+                        this.loadPositionsPage();
+                        this.loadUserDashboard();
+                    }
+                }
+            }
+
+            submitDepositRequest() {
+                const amount = document.getElementById('depositAmount').value;
+                const note = document.getElementById('depositNote').value;
+
+                this.store.addDeposit(this.store.currentUser.id, amount, note);
+                alert('Demande de recharge soumise ! Elle sera traitée par un administrateur.');
+                document.getElementById('depositForm').reset();
+            }
+
+            // Admin functions
+            loadAdminDashboard() {
+                this.updateAdminStats();
+            }
+
+            updateAdminStats() {
+                const totalUsers = this.store.users.filter(u => !u.isAdmin).length;
+                const totalCapital = this.store.users.reduce((sum, u) => sum + u.balance, 0);
+                const activeTrades = this.store.positions.filter(p => p.status === 'open').length;
+                const pendingDeposits = this.store.deposits.filter(d => d.status === 'pending').length;
+
+                document.getElementById('adminTotalUsers').textContent = totalUsers;
+                document.getElementById('adminTotalCapital').textContent = totalCapital.toFixed(2) + ' €';
+                document.getElementById('adminActiveTrades').textContent = activeTrades;
+                document.getElementById('adminPendingDeposits').textContent = pendingDeposits;
+            }
+
+            loadAdminUsersPage() {
+                const users = this.store.users.filter(u => !u.isAdmin);
+                const container = document.getElementById('adminUsersList');
+                
+                container.innerHTML = users.map(user => {
+                    const positions = this.store.getUserPositions(user.id);
+                    const openPositions = positions.filter(p => p.status === 'open').length;
+                    const totalPnL = positions.reduce((sum, p) => sum + (p.pnl || 0), 0);
+                    
+                    return `
+                        <div class="admin-user-item">
+                            <div class="user-info">
+                                <span class="user-name">${user.name}</span>
+                                <span class="user-email">${user.email}</span>
+                            </div>
+                            <div class="user-stats">
+                                <span>Balance: ${user.balance.toFixed(2)} €</span>
+                                <span>Positions ouvertes: ${openPositions}</span>
+                                <span>P&L Total: ${totalPnL.toFixed(2)} €</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Market Management Methods
+            loadAdminMarketsPage() {
+                this.renderMarketsList();
+                this.setupIntervalSelectors();
+                this.setupMarketFormListeners();
+            }
+
+            renderMarketsList() {
+                const markets = this.simulator.getAllMarkets();
+                const container = document.getElementById('adminMarketsList');
+                
+                container.innerHTML = markets.map(market => `
+                    <div class="market-item-admin" data-symbol="${market.symbol}">
+                        <div class="market-drag">⋮⋮</div>
+                        <div class="market-name">
+                            <h4>${market.symbol}</h4>
+                            <p>${market.name} • ${market.category}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600;">${market.price.toFixed(4)}</div>
+                            <div style="font-size: 12px; color: ${market.change >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                                ${market.change >= 0 ? '+' : ''}${market.change.toFixed(2)}%
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 12px;">
+                            <span class="interval-badge" style="padding: 4px 8px;">
+                                ${market.interval === 'top' ? 'En haut' : market.interval === 'popular' ? 'Populaire' : market.interval === 'middle' ? 'Moyen' : 'En bas'}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-icon up" data-symbol="${market.symbol}" onclick="event.preventDefault(); app.moveMarketUp('${market.symbol}'); return false;">↑</button>
+                            <button class="btn-icon down" data-symbol="${market.symbol}" onclick="event.preventDefault(); app.moveMarketDown('${market.symbol}'); return false;">↓</button>
+                            <button class="btn-icon edit" data-symbol="${market.symbol}" onclick="event.preventDefault(); app.editMarket('${market.symbol}'); return false;">✏</button>
+                            <button class="btn-icon delete" data-symbol="${market.symbol}" onclick="event.preventDefault(); app.deleteMarket('${market.symbol}'); return false;">🗑</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            setupIntervalSelectors() {
+                const badges = document.querySelectorAll('#intervalSelector .interval-badge');
+                badges.forEach(badge => {
+                    badge.addEventListener('click', () => {
+                        document.querySelectorAll('#intervalSelector .interval-badge').forEach(b => b.classList.remove('selected'));
+                        badge.classList.add('selected');
+                    });
+                });
+
+                // Set default selected
+                const middleBadge = document.querySelector('#intervalSelector .interval-badge[data-interval="middle"]');
+                if (middleBadge) {
+                    middleBadge.classList.add('selected');
+                }
+            }
+
+            setupMarketFormListeners() {
+                const form = document.getElementById('addMarketForm');
+                if (!form) return;
+
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveMarket();
+                });
+
+                document.getElementById('cancelEditBtn').addEventListener('click', () => {
+                    this.resetMarketForm();
+                });
+            }
+
+            editMarket(symbol) {
+                const market = this.simulator.getMarket(symbol);
+                if (!market) return;
+
+                document.getElementById('editingMarketId').value = symbol;
+                document.getElementById('marketSymbol').value = market.symbol;
+                document.getElementById('marketSymbol').disabled = true;
+                document.getElementById('marketName').value = market.name;
+                document.getElementById('marketPrice').value = market.price;
+                document.getElementById('marketChange').value = market.change;
+                document.getElementById('marketCategory').value = market.category;
+                document.getElementById('marketVolatility').value = market.volatility || 0.002;
+
+                // Select interval
+                document.querySelectorAll('#intervalSelector .interval-badge').forEach(badge => {
+                    badge.classList.toggle('selected', badge.dataset.interval === market.interval);
+                });
+
+                document.getElementById('cancelEditBtn').style.display = 'block';
+            }
+
+            deleteMarket(symbol) {
+                if (!confirm(`Êtes-vous sûr de vouloir supprimer le marché ${symbol} ?`)) {
+                    return;
+                }
+
+                if (this.simulator.deleteMarket(symbol)) {
+                    alert(`Marché ${symbol} supprimé avec succès !`);
+                    this.store.logActivity('market_deleted', this.store.currentUser.id, `Marché supprimé: ${symbol}`);
+                    this.loadAdminMarketsPage();
+                } else {
+                    alert('Erreur lors de la suppression du marché');
+                }
+            }
+
+            moveMarketUp(symbol) {
+                if (this.simulator.moveMarketUp(symbol)) {
+                    this.store.logActivity('market_moved', this.store.currentUser.id, `Marché ${symbol} déplacé vers le haut`);
+                    this.loadAdminMarketsPage();
+                } else {
+                    alert('Impossible de déplacer le marché vers le haut');
+                }
+            }
+
+            moveMarketDown(symbol) {
+                if (this.simulator.moveMarketDown(symbol)) {
+                    this.store.logActivity('market_moved', this.store.currentUser.id, `Marché ${symbol} déplacé vers le bas`);
+                    this.loadAdminMarketsPage();
+                } else {
+                    alert('Impossible de déplacer le marché vers le bas');
+                }
+            }
+
+            saveMarket() {
+                const editingId = document.getElementById('editingMarketId').value;
+                const symbol = document.getElementById('marketSymbol').value.toUpperCase();
+                const name = document.getElementById('marketName').value;
+                const price = document.getElementById('marketPrice').value;
+                const change = document.getElementById('marketChange').value;
+                const category = document.getElementById('marketCategory').value;
+                const volatility = document.getElementById('marketVolatility').value;
+                
+                const selectedInterval = document.querySelector('#intervalSelector .interval-badge.selected');
+                const interval = selectedInterval ? selectedInterval.dataset.interval : 'middle';
+
+                if (!name || !price) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
+
+                if (!category) {
+                    alert('Veuillez sélectionner une catégorie');
+                    return;
+                }
+
+                if (!volatility) {
+                    alert('Veuillez définir la volatilité');
+                    return;
+                }
+
+                const marketData = {
+                    symbol,
+                    name,
+                    price: parseFloat(price),
+                    change: parseFloat(change),
+                    category,
+                    interval,
+                    volatility: parseFloat(volatility)
+                };
+
+                if (editingId) {
+                    // Update existing market
+                    if (this.simulator.updateMarket(editingId, marketData)) {
+                        alert(`Marché ${symbol} mis à jour avec succès !`);
+                        this.store.logActivity('market_updated', this.store.currentUser.id, `Marché mis à jour: ${symbol}`);
+                    }
+                } else {
+                    // Add new market
+                    if (this.simulator.addMarket(marketData)) {
+                        alert(`Marché ${symbol} ajouté avec succès !`);
+                        this.store.logActivity('market_added', this.store.currentUser.id, `Nouveau marché ajouté: ${symbol}`);
+                    } else {
+                        alert(`Le marché ${symbol} existe déjà !`);
+                    }
+                }
+
+                this.resetMarketForm();
+                this.loadAdminMarketsPage();
+            }
+
+            resetMarketForm() {
+                document.getElementById('addMarketForm').reset();
+                document.getElementById('editingMarketId').value = '';
+                document.getElementById('marketSymbol').disabled = false;
+                document.getElementById('marketVolatility').value = '0.002';
+                document.getElementById('cancelEditBtn').style.display = 'none';
+                document.querySelectorAll('#intervalSelector .interval-badge').forEach(b => b.classList.remove('selected'));
+                document.querySelector('#intervalSelector .interval-badge[data-interval="middle"]').classList.add('selected');
+            }
+        }
+
+        // Initialize the application
+        const app = new TradingApp();
+    </script>
+</body>
+</html>
